@@ -9,6 +9,7 @@ import dbConfig from 'src/config/db.config';
 import { UserModule } from 'src/user/user.module';
 import path from 'path';
 import { AuthModule } from 'src/auth/auth.module';
+import { ShiftModule } from 'src/shift/shift.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AuthModule } from 'src/auth/auth.module';
       playground: true,
     }),
     UserModule,
+    ShiftModule,
     AuthModule
   ],
   controllers: [AppController],

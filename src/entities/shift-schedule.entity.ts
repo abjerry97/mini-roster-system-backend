@@ -12,7 +12,7 @@ export class ShiftSchedule extends BaseTimeEntity {
   id: string;
 
   @ManyToOne(() => Shift, shift => shift.schedules, { eager: true })
-  shiftTemplate: Shift;
+  shift: Shift;
  
   @Field()
   @Column({ type: 'date' })
@@ -31,4 +31,5 @@ export class ShiftSchedule extends BaseTimeEntity {
  
   @Column({ default: 1 })
   interval: number;
+    shiftTemplate: never;
 }

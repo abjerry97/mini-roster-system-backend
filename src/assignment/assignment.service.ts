@@ -1,71 +1,152 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
 import { Assignment } from '../entities/assignment.entity';
 import { User } from '../entities/user.entity';
-import { ShiftOccurrence } from 'src/entities/shift-occurence.entity';
+import { ShiftSchedule } from 'src/entities/shift-schedule.entity';
+import { AssignmentStatus } from 'src/enums/assignment-status.enum';
 
 @Injectable()
 export class AssignmentService {
   constructor(
     @InjectRepository(Assignment) private repo: Repository<Assignment>,
     @InjectRepository(User) private userRepo: Repository<User>,
-    @InjectRepository(ShiftOccurrence)
-    private occRepo: Repository<ShiftOccurrence>,
+    @InjectRepository(ShiftSchedule)
+    private scheduleRepo: Repository<ShiftSchedule>,
   ) {}
 
-  async assignUserToOccurrence(userId: string, occurrenceId: string) {
+  async assignUserToOccurrence(
+    userId: string,
+    scheduleId: string,
+    date: string,
+  ) {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    const occ = await this.occRepo.findOneBy({ id: occurrenceId });
-    if (!occ) {
-      throw new NotFoundException('Occurrence not found');
+    const schedule = await this.scheduleRepo.findOneBy({ id: scheduleId });
+    if (!schedule) {
+      throw new NotFoundException('Schedule not found');
     }
 
-    const exists = await this.repo.findOne({
-      where: { user: { id: userId }, occurrence: { id: occurrenceId } },
-    });
-    if (exists) throw new Error('User already assigned');
-    const assignment = this.repo.create();
-    assignment.user = Promise.resolve(user) as any;
-    assignment.occurrence = Promise.resolve(occ) as any;
+    const assignmentDate = new Date(date);
+    if (isNaN(assignmentDate.getTime())) {
+      throw new BadRequestException('Invalid date format');
+    }
 
-    occ.isOpen = false;
-    await this.occRepo.save(occ);
+    const existing = await this.repo.findOne({
+      where: {
+        scheduleId,
+        date: assignmentDate,
+      },
+    });
+
+    if (existing) {
+      if (existing.userId === userId) {
+        throw new BadRequestException('User already assigned to this shift');
+      }
+      throw new BadRequestException(
+        'This shift is already assigned to another user',
+      );
+    }
+
+    const assignment = this.repo.create({
+      userId,
+      scheduleId,
+      date: assignmentDate,
+      status: AssignmentStatus.ASSIGNED,
+    });
+
     return this.repo.save(assignment);
   }
 
   async removeAssignment(assignmentId: string) {
-    const assignment = await this.repo.findOneBy({ id: assignmentId });
-    if (!assignment) throw new Error('Assignment not found');
-    const occ = await this.occRepo.findOne({
-      where: { id: assignment.occurrence.id },
-      relations: ['assignments'],
+    const assignment = await this.repo.findOne({
+      where: { id: assignmentId },
+      relations: ['schedule'],
     });
-    if (!occ) {
+
+    if (!assignment) {
       throw new NotFoundException('Assignment not found');
     }
+
     await this.repo.remove(assignment);
-    const remaining = await this.repo.count({
-      where: { occurrence: { id: occ.id } },
-    });
-    if (remaining === 0) {
-      occ.isOpen = true;
-      await this.occRepo.save(occ);
-    }
     return true;
+  }
+
+  async cancelShift(scheduleId: string, date: string, reason?: string) {
+    const schedule = await this.scheduleRepo.findOneBy({ id: scheduleId });
+    if (!schedule) {
+      throw new NotFoundException('Schedule not found');
+    }
+
+    const assignmentDate = new Date(date);
+
+    let assignment = await this.repo.findOne({
+      where: { scheduleId, date: assignmentDate },
+    });
+
+    if (!assignment) {
+      assignment = this.repo.create({
+        scheduleId,
+        date: assignmentDate,
+        status: AssignmentStatus.CANCELLED,
+        notes: reason,
+      });
+    } else {
+      assignment.status = AssignmentStatus.CANCELLED;
+      assignment.notes = reason;
+      assignment.userId = undefined;
+    }
+
+    return this.repo.save(assignment);
+  }
+
+  async reopenShift(scheduleId: string, date: string) {
+    const assignmentDate = new Date(date);
+
+    const assignment = await this.repo.findOne({
+      where: { scheduleId, date: assignmentDate },
+    });
+
+    if (!assignment) {
+      throw new NotFoundException('Assignment not found');
+    }
+
+    if (assignment.status !== AssignmentStatus.CANCELLED) {
+      throw new BadRequestException('Shift is not cancelled');
+    }
+
+    assignment.status = AssignmentStatus.OPEN;
+    assignment.notes = undefined;
+
+    return this.repo.save(assignment);
   }
 
   async getUserAssignments(userId: string, start: string, end: string) {
     return this.repo.find({
       where: {
-        user: { id: userId },
-        occurrence: { date: Between(start, end) },
-      } as any,
-      relations: ['occurrence', 'occurrence.shiftTemplate'],
+        userId,
+        date: Between(new Date(start), new Date(end)),
+        status: AssignmentStatus.ASSIGNED,
+      },
+      relations: ['schedule', 'schedule.shift'],
+      order: { date: 'ASC' },
+    });
+  }
+
+  async getAssignmentsInRange(start: string, end: string) {
+    return this.repo.find({
+      where: {
+        date: Between(new Date(start), new Date(end)),
+      },
+      relations: ['schedule', 'schedule.shift', 'user'],
+      order: { date: 'ASC' },
     });
   }
 }

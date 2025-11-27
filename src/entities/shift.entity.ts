@@ -1,9 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { Assignment } from './assignment.entity';
 import { BaseTimeEntity } from './base-time.entity';
 import { ShiftSchedule } from './shift-schedule.entity';
-import { ShiftOccurrence } from './shift-occurence.entity';
 
 @ObjectType()
 @Entity()
@@ -23,9 +21,6 @@ export class Shift extends BaseTimeEntity {
   @Field()
   @Column({ type: 'time' })
   endTime: string;
-
-  @OneToMany(() => ShiftOccurrence, (o) => o.shift)
-  occurrences: ShiftOccurrence[];
 
   // @OneToMany(() => Assignment, (assignment) => assignment.shift)
   // assignments: Promise<Assignment[]>;

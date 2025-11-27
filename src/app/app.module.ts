@@ -11,9 +11,14 @@ import { AuthModule } from 'src/auth/auth.module';
 import { ShiftModule } from 'src/shift/shift.module';
 import { AssignmentModule } from 'src/assignment/assignment.module';
 import { CannotAttendModule } from 'src/cannot-attend/cannot-attend.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'super-secret-key', // ✅ REQUIRED
+      signOptions: { expiresIn: '1d' },
+    }),
     ConfigModule.forRoot({
       envFilePath: '.env',
       load: [dbConfig],

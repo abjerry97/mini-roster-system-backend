@@ -7,7 +7,7 @@ import { User } from 'src/entities/user.entity';
 import { ShiftOccurrence } from 'src/entities/shift-occurence.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Assignment,User,ShiftOccurrence])],
-  providers: [AssignmentResolver, AssignmentService]
+  imports: [TypeOrmModule.forFeature([Assignment, User, ShiftOccurrence])],
+  providers: [AssignmentResolver, AssignmentService],
 })
 export class AssignmentModule {}

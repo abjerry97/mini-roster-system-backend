@@ -8,30 +8,28 @@ import { ShiftOccurrence } from './shift-occurence.entity';
 @ObjectType()
 @Entity()
 export class Shift extends BaseTimeEntity {
-    @Field(() => ID)
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @Field(() => ID)
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Field()
-    @Column()
-    name: string;
+  @Field()
+  @Column()
+  name: string;
 
-    @Field()
-    @Column({ type: 'time' })
-    startTime: string;
+  @Field()
+  @Column({ type: 'time' })
+  startTime: string;
 
-    @Field()
-    @Column({ type: 'time' })
-    endTime: string;
+  @Field()
+  @Column({ type: 'time' })
+  endTime: string;
 
-    @OneToMany(() => ShiftOccurrence, (o) => o.shiftTemplate)
-    occurrences: ShiftOccurrence[];
+  @OneToMany(() => ShiftOccurrence, (o) => o.shiftTemplate)
+  occurrences: ShiftOccurrence[];
 
-    // @OneToMany(() => Assignment, (assignment) => assignment.shift)
-    // assignments: Promise<Assignment[]>;
+  // @OneToMany(() => Assignment, (assignment) => assignment.shift)
+  // assignments: Promise<Assignment[]>;
 
-
-    @OneToMany(() => ShiftSchedule, schedule => schedule.shift)
-    schedules: Promise<ShiftSchedule[]>;
+  @OneToMany(() => ShiftSchedule, (schedule) => schedule.shift)
+  schedules: Promise<ShiftSchedule[]>;
 }
-

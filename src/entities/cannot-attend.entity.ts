@@ -6,7 +6,7 @@ import { BaseTimeEntity } from './base-time.entity';
 
 @ObjectType()
 @Entity()
-export class CannotAttend  extends BaseTimeEntity{
+export class CannotAttend extends BaseTimeEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -22,5 +22,4 @@ export class CannotAttend  extends BaseTimeEntity{
   @Field(() => Shift)
   @ManyToOne(() => Shift, { eager: true })
   shift: Promise<Shift>;
-
 }

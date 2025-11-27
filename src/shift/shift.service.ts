@@ -5,6 +5,7 @@ import { ShiftSchedule } from '../entities/shift-schedule.entity';
 import { Shift } from 'src/entities/shift.entity';
 import { ShiftOccurrence } from 'src/entities/shift-occurence.entity';
 import { generateOccurrencesForSchedule } from 'src/utils/recurrence';
+import { CreateShiftInput } from './dto/create-shift.input';
 
 @Injectable()
 export class ShiftService {
@@ -17,7 +18,7 @@ export class ShiftService {
     private occRepo: Repository<ShiftOccurrence>,
   ) {}
 
-  async createShift(data) {
+  async createShift(data:CreateShiftInput) {
     const tpl = this.shiftRepo.create(data);
     return this.shiftRepo.save(tpl);
   }

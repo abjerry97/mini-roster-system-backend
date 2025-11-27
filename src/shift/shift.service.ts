@@ -8,20 +8,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
 import { ShiftSchedule } from '../entities/shift-schedule.entity';
 import { Shift } from 'src/entities/shift.entity';
-import { ShiftOccurrence } from 'src/entities/shift-occurence.entity';
 import { generateOccurrencesForSchedule } from 'src/utils/recurrence';
 import { CreateShiftInput } from './dto/create-shift.input';
 import { CreateScheduleInput } from './dto/create-schedule.input';
+import { Assignment } from 'src/entities/assignment.entity';
+import { AssignmentStatus } from 'src/enums/assignment-status.enum';
 
 @Injectable()
 export class ShiftService {
-  tplRepo: any;
   constructor(
     @InjectRepository(Shift) private shiftRepo: Repository<Shift>,
     @InjectRepository(ShiftSchedule)
     private scheduleRepo: Repository<ShiftSchedule>,
-    @InjectRepository(ShiftOccurrence)
-    private occRepo: Repository<ShiftOccurrence>,
+    @InjectRepository(Assignment)
+    private assignmentRepo: Repository<Assignment>,
   ) {}
 
   async createShift(data: CreateShiftInput) {
@@ -137,40 +137,183 @@ export class ShiftService {
     return occurrences;
   }
 
-  // async ensureOccurrence(shiftId: string, date: string) {
-  //   if (!shiftId) {
-  //     throw new BadRequestException('shiftId is required');
-  //   }
-  //   if (!date) {
-  //     throw new BadRequestException('date is required');
-  //   }
+  async getCalendarShifts(
+    startDate: string,
+    endDate: string,
+  ): Promise<CalendarShift[]> {
+    const schedules = await this.scheduleRepo.find({
+      where: { isActive: true },
+      relations: ['shift', 'assignments', 'assignments.user'],
+    });
 
-  //   const occurrenceDate = new Date(date);
-  //   if (isNaN(occurrenceDate.getTime())) {
-  //     throw new BadRequestException('Invalid date format');
-  //   }
+    const calendarShifts: CalendarShift[] = [];
 
-  //   let occ = await this.occRepo.findOne({
-  //     where: { shift: { id: shiftId }, date: occurrenceDate.toISOString() },
-  //   });
+    for (const schedule of schedules) {
+      const dates = generateOccurrencesForSchedule(
+        schedule,
+        startDate,
+        endDate,
+      );
 
-  //   if (!occ) {
-  //     const tpl = await this.tplRepo.findOneBy({ id: shiftId });
-  //     if (!tpl) {
-  //       throw new NotFoundException(
-  //         `Shift template not found with id: ${shiftId}`,
-  //       );
-  //     }
+      for (const dateStr of dates) {
+        const assignment = await this.assignmentRepo.findOne({
+          where: {
+            scheduleId: schedule.id,
+            date: new Date(dateStr),
+          },
+          relations: ['user'],
+        });
 
-  //     occ = this.occRepo.create({
-  //       shift: tpl,
-  //       date: occurrenceDate.toISOString(),
-  //       isOpen: true,
-  //     });
+        const timeslot = this.getTimeslotFromTime(schedule.shift.startTime);
 
-  //     occ = await this.occRepo.save(occ);
-  //   }
+        let status: 'open' | 'assigned' | 'unavailable' = 'open';
+        let assignedUserId: string | undefined;
+        let assignedUserName: string | undefined;
+        let unavailableReason: string | undefined;
+        let assignmentId: string | undefined;
 
-  //   return occ;
-  // }
+        if (assignment) {
+          assignmentId = assignment.id;
+
+          if (assignment.status === AssignmentStatus.CANCELLED) {
+            status = 'unavailable';
+            unavailableReason = assignment.notes || 'Shift cancelled';
+          } else if (
+            assignment.status === AssignmentStatus.ASSIGNED &&
+            assignment.userId
+          ) {
+            status = 'assigned';
+            assignedUserId = assignment.userId;
+            const user = await assignment.user;
+            assignedUserName = user?.name;
+          }
+        }
+
+        calendarShifts.push({
+          id: `${schedule.id}-${dateStr}`,
+          date: dateStr,
+          timeslot,
+          startTime: schedule.shift.startTime,
+          endTime: schedule.shift.endTime,
+          status,
+          position: schedule.shift.name,
+          assignedUserId,
+          assignedUserName,
+          unavailableReason,
+          assignmentId,
+          scheduleId: schedule.id,
+          shiftId: schedule.shift.id,
+        });
+      }
+    }
+
+    return calendarShifts.sort((a, b) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return a.startTime.localeCompare(b.startTime);
+    });
+  }
+
+  private getTimeslotFromTime(timeStr: string): string {
+    const hour = parseInt(timeStr.split(':')[0]);
+
+    if (hour >= 6 && hour < 12) return 'morning';
+    if (hour >= 12 && hour < 18) return 'afternoon';
+    if (hour >= 18 && hour < 24) return 'evening';
+    return 'night';
+  }
+
+  async getUserCalendarShifts(
+    userId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<CalendarShift[]> {
+    const assignments = await this.assignmentRepo.find({
+      where: {
+        userId,
+        date: Between(new Date(startDate), new Date(endDate)),
+      },
+      relations: ['schedule', 'schedule.shift', 'user'],
+    });
+
+    return assignments.map((assignment) => ({
+      id: `${assignment.scheduleId}-${assignment.date.toISOString().split('T')[0]}`,
+      date: assignment.date.toISOString().split('T')[0],
+      timeslot: this.getTimeslotFromTime(assignment.schedule.shift.startTime),
+      startTime: assignment.schedule.shift.startTime,
+      endTime: assignment.schedule.shift.endTime,
+      status:
+        assignment.status === AssignmentStatus.ASSIGNED
+          ? 'assigned'
+          : assignment.status === AssignmentStatus.CANCELLED
+            ? 'unavailable'
+            : 'open',
+      position: assignment.schedule.shift.name,
+      assignedUserId: assignment.userId,
+      unavailableReason:
+        assignment.status === AssignmentStatus.CANCELLED
+          ? assignment.notes
+          : undefined,
+      assignmentId: assignment.id,
+      scheduleId: assignment.scheduleId,
+      shiftId: assignment.schedule.shift.id,
+    }));
+  }
+
+  async getCannotAttendInRange(startDate: string, endDate: string) {
+    const assignments = await this.assignmentRepo.find({
+      where: {
+        date: Between(new Date(startDate), new Date(endDate)),
+      },
+      relations: [
+        'cannotAttendRecords',
+        'cannotAttendRecords.user',
+        'schedule',
+        'schedule.shift',
+      ],
+    });
+
+    const cannotAttendList: {
+      id: string;
+      userId: string;
+      userName: string;
+      date: string;
+      shiftName: string;
+      reason?: string;
+      assignmentId: string;
+    }[] = [];
+
+    for (const assignment of assignments) {
+      const records = await assignment.cannotAttendRecords;
+      for (const record of records) {
+        const user = await record.user;
+        cannotAttendList.push({
+          id: record.id,
+          userId: record.userId,
+          userName: user.name,
+          date: assignment.date.toISOString().split('T')[0],
+          shiftName: assignment.schedule.shift.name,
+          reason: record.reason,
+          assignmentId: assignment.id,
+        });
+      }
+    }
+
+    return cannotAttendList;
+  }
+}
+
+export interface CalendarShift {
+  id: string;
+  date: string;
+  timeslot: string;
+  startTime: string;
+  endTime: string;
+  status: 'open' | 'assigned' | 'unavailable';
+  position: string;
+  assignedUserId?: string;
+  assignedUserName?: string;
+  unavailableReason?: string;
+  assignmentId?: string;
+  scheduleId: string;
+  shiftId: string;
 }

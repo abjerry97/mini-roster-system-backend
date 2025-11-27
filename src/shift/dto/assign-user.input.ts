@@ -1,13 +1,20 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IsUUID, IsDateString } from 'class-validator';
+import { IsNotEmpty, IsUUID, IsDateString } from 'class-validator';
 
 @InputType()
 export class AssignUserInput {
   @Field()
+  @IsNotEmpty()
   @IsUUID()
   userId: string;
 
   @Field()
+  @IsNotEmpty()
   @IsUUID()
-  occurrenceId: string;
+  scheduleId: string;
+
+  @Field()
+  @IsNotEmpty()
+  @IsDateString()
+  date: string;
 }

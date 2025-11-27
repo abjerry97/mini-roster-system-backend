@@ -23,15 +23,16 @@ export class User extends BaseTimeEntity {
   @Column({ unique: true })
   email: string;
 
+  @Field()
   @Column({ unique: true })
   uid: string;
 
+  @Field(() => Role)
   @Column({
     type: 'enum',
     enum: Role,
     default: Role.USER,
   })
-  @Field(() => Role)
   role: Role;
 
   @Column()
@@ -41,9 +42,11 @@ export class User extends BaseTimeEntity {
   @Column()
   name: string;
 
+  @Field(() => [Assignment], { nullable: true })
   @OneToMany(() => Assignment, (assignment) => assignment.user)
   assignments: Promise<Assignment[]>;
 
+  @Field(() => [CannotAttend], { nullable: true })
   @OneToMany(() => CannotAttend, (ca) => ca.user)
   cannotAttend: Promise<CannotAttend[]>;
 }

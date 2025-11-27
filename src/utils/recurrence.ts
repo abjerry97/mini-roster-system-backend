@@ -15,7 +15,7 @@ export function generateOccurrencesForSchedule(
   const rangeStart = parseDate(windowStart);
   const rangeEnd = parseDate(windowEnd);
 
-  let current = start < rangeStart ? rangeStart : start;
+  const current = start < rangeStart ? rangeStart : start;
 
   const endDate = schedule.endDate ? parseDate(schedule.endDate) : null;
 

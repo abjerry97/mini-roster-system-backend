@@ -7,7 +7,7 @@ import { ShiftSchedule } from 'src/entities/shift-schedule.entity';
 import { ShiftOccurrence } from 'src/entities/shift-occurence.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Shift,ShiftSchedule,ShiftOccurrence])],
-  providers: [ShiftResolver, ShiftService,]
+  imports: [TypeOrmModule.forFeature([Shift, ShiftSchedule, ShiftOccurrence])],
+  providers: [ShiftResolver, ShiftService],
 })
 export class ShiftModule {}

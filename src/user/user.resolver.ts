@@ -17,10 +17,9 @@ export class UserResolver {
 
   // @UseGuards(GqlJwtGuard)
   @Query(() => User)
-  getUser(@Args('id',) id: string) {
+  getUser(@Args('id') id: string) {
     return this.userService.findOne(id);
   }
-
 
   @Mutation(() => User)
   createUser(@Args('createUserInput') createUserInput: CreateUserInput) {

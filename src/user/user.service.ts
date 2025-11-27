@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
-import { CreateUserInput } from './dto/create-user.input'; 
+import { CreateUserInput } from './dto/create-user.input';
 import { hash } from 'argon2';
 import { v4 as uuidv4 } from 'uuid';
 

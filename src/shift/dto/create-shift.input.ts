@@ -7,7 +7,7 @@ export class CreateShiftInput {
   @Field()
   @IsNotEmpty()
   name: string;
- 
+
   @Field()
   @Matches(/^\d{2}:\d{2}(:\d{2})?$/)
   startTime: string;
@@ -16,7 +16,7 @@ export class CreateShiftInput {
   @Matches(/^\d{2}:\d{2}(:\d{2})?$/)
   endTime: string;
 
- @Field(() => RecurrenceType)
+  @Field(() => RecurrenceType)
   recurrenceType: RecurrenceType;
 
   @Field(() => [Int], { nullable: true })

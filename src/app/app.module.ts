@@ -10,6 +10,7 @@ import { UserModule } from 'src/user/user.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { ShiftModule } from 'src/shift/shift.module';
 import { AssignmentModule } from 'src/assignment/assignment.module';
+import { CannotAttendModule } from 'src/cannot-attend/cannot-attend.module';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { AssignmentModule } from 'src/assignment/assignment.module';
       load: [dbConfig],
       isGlobal: true,
     }),
-   TypeOrmModule.forRootAsync({
+    TypeOrmModule.forRootAsync({
       useFactory: dbConfig,
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -30,9 +31,10 @@ import { AssignmentModule } from 'src/assignment/assignment.module';
     UserModule,
     ShiftModule,
     AuthModule,
-    AssignmentModule
+    AssignmentModule,
+    CannotAttendModule
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

@@ -32,7 +32,7 @@ import { CannotAttendModule } from 'src/cannot-attend/cannot-attend.module';
     ShiftModule,
     AuthModule,
     AssignmentModule,
-    CannotAttendModule
+    CannotAttendModule,
   ],
   controllers: [AppController],
   providers: [AppService],

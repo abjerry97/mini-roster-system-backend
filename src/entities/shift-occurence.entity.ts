@@ -18,8 +18,8 @@ export class ShiftOccurrence extends BaseTimeEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Shift, (s) => s.occurrences, { eager: true })
-  shiftTemplate: Shift;
+  @ManyToOne(() => Shift, (shift) => shift.schedules, { onDelete: 'CASCADE' })
+  shift: Shift;
 
   @Field()
   @Index()

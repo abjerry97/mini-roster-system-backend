@@ -7,9 +7,9 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ConfigModule } from '@nestjs/config';
 import dbConfig from 'src/config/db.config';
 import { UserModule } from 'src/user/user.module';
-import path from 'path';
 import { AuthModule } from 'src/auth/auth.module';
 import { ShiftModule } from 'src/shift/shift.module';
+import { AssignmentModule } from 'src/assignment/assignment.module';
 
 @Module({
   imports: [
@@ -29,7 +29,8 @@ import { ShiftModule } from 'src/shift/shift.module';
     }),
     UserModule,
     ShiftModule,
-    AuthModule
+    AuthModule,
+    AssignmentModule
   ],
   controllers: [AppController],
   providers: [AppService],

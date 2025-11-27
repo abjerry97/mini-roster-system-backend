@@ -24,12 +24,13 @@ export class Shift extends BaseTimeEntity {
   @Column({ type: 'time' })
   endTime: string;
 
-  @OneToMany(() => ShiftOccurrence, (o) => o.shiftTemplate)
+  @OneToMany(() => ShiftOccurrence, (o) => o.shift)
   occurrences: ShiftOccurrence[];
 
   // @OneToMany(() => Assignment, (assignment) => assignment.shift)
   // assignments: Promise<Assignment[]>;
 
+  @Field(() => [ShiftSchedule], { nullable: true })
   @OneToMany(() => ShiftSchedule, (schedule) => schedule.shift)
-  schedules: Promise<ShiftSchedule[]>;
+  schedules: ShiftSchedule[];
 }

@@ -15,7 +15,7 @@ export class ShiftResolver {
     return true;
   }
 
-  @Query(() => [Shift], { name: 'shift' })
+  @Query(() => [Shift], { name: 'shifts' })
   async findAll() {
     return await this.shiftService.findAll();
   }
@@ -37,7 +37,12 @@ export class ShiftResolver {
     const generated = await this.shiftService.getOccurrencesInRange(start, end);
 
     return generated.map((g) => {
-      return { date: g.date, name: g.shift.name, startTime: g.shift.startTime };
+      return {
+        date: g.date,
+        name: g.shift.name,
+        startTime: g.shift.startTime,
+        endTime: g.shift.endTime,
+      };
     });
   }
 }

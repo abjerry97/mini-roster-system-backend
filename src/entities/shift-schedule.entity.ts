@@ -31,5 +31,4 @@ export class ShiftSchedule extends BaseTimeEntity {
 
   @Column({ default: 1 })
   interval: number;
-  shiftTemplate: never;
 }

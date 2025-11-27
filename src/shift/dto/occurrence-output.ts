@@ -10,4 +10,7 @@ export class OccurrenceOutput {
 
   @Field()
   startTime: string;
+
+  @Field()
+  endTime: string;
 }

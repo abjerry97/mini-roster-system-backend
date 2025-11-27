@@ -4,6 +4,8 @@ import { User } from 'src/entities/user.entity';
 import { UserService } from './user.service';
 import { GqlJwtGuard } from 'src/auth/guards/gql-jwt-guard/gql-jwt.guard';
 import { CreateUserInput } from './dto/create-user.input';
+import { LoginInput } from './dto/login-input';
+import { AuthResponse } from './dto/auth-response';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -15,15 +17,19 @@ export class UserResolver {
     return await this.userService.findAll();
   }
 
-  // @UseGuards(GqlJwtGuard)
+  @UseGuards(GqlJwtGuard)
   @Query(() => User)
-  getUser(@Args('id',) id: string) {
+  getUser(@Args('id') id: string) {
     return this.userService.findOne(id);
   }
-
 
   @Mutation(() => User)
   createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
     return this.userService.create(createUserInput);
+  }
+
+  @Mutation(() => AuthResponse)
+  login(@Args('loginInput') loginInput: LoginInput) {
+    return this.userService.login(loginInput.email, loginInput.password);
   }
 }

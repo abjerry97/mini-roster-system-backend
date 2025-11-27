@@ -1,9 +1,9 @@
 import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column,
-    OneToMany,
-    Index,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  Index,
 } from 'typeorm';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { Assignment } from './assignment.entity';
@@ -14,38 +14,39 @@ import { Role } from '../enums/role.enum';
 @ObjectType()
 @Entity()
 export class User extends BaseTimeEntity {
-    @Field(() => ID)
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @Field(() => ID)
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Field()
-    @Index()
-    @Column({ unique: true })
-    email: string;
+  @Field()
+  @Index()
+  @Column({ unique: true })
+  email: string;
 
-    @Column({ unique: true })
-    uid: string;
+  @Field()
+  @Column({ unique: true })
+  uid: string;
 
-    @Column({
-        type: 'enum',
-        enum: Role,
-        default: Role.USER,
-    })
-    @Field(() => Role)
-    role: Role;
+  @Field(() => Role)
+  @Column({
+    type: 'enum',
+    enum: Role,
+    default: Role.USER,
+  })
+  role: Role;
 
-    @Column()
-    password: string;
+  @Column()
+  password: string;
 
-    @Field()
-    @Column()
-    name: string;
+  @Field()
+  @Column()
+  name: string;
 
-    @OneToMany(() => Assignment, assignment => assignment.user)
-    assignments: Promise<Assignment[]>;
+  @Field(() => [Assignment], { nullable: true })
+  @OneToMany(() => Assignment, (assignment) => assignment.user)
+  assignments: Promise<Assignment[]>;
 
-
-    @OneToMany(() => CannotAttend, (ca) => ca.user)
-    cannotAttend: Promise<CannotAttend[]>;
-
+  @Field(() => [CannotAttend], { nullable: true })
+  @OneToMany(() => CannotAttend, (ca) => ca.user)
+  cannotAttend: Promise<CannotAttend[]>;
 }

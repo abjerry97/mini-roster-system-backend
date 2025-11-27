@@ -14,8 +14,9 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService): Promise<any> => {
-        const expires = configService.get<string>('JWT_EXPIRES_IN'); 
-        const expiresIn = expires && /^\d+$/.test(expires) ? Number(expires) : expires;
+        const expires = configService.get<string>('JWT_EXPIRES_IN');
+        const expiresIn =
+          expires && /^\d+$/.test(expires) ? Number(expires) : expires;
         return {
           secret: configService.get<string>('JWT_SECRET'),
           signOptions: {
@@ -24,7 +25,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         };
       },
     }),
-    AuthModule
+    AuthModule,
   ],
 
   providers: [AuthResolver, AuthService, JwtStrategy],

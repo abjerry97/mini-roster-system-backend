@@ -1,98 +1,239 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Mini Roster System Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A scheduling and shift-management backend built with **NestJS**, **GraphQL**, and **TypeORM**.  
+It supports recurring schedules, shift instance generation, user assignment, and open shift management.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🚀 Features
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Create recurring shift schedules (daily, weekly, monthly)
+- Auto-generate shift instances (Assignments)
+- Support for open/unassigned shifts
+- User assignment and reassignment
+- GraphQL queries & mutations
+- Clean two-layer schedule architecture
+- Prevent overlapping user assignments
+- Supports optional end dates for schedules
 
-## Project setup
+---
 
-```bash
-$ npm install
+## 🧠 System Architecture (Summary)
+
+1. **ShiftSchedule** represents recurring patterns (e.g., "every Monday").
+2. **Assignment** is the actual shift instance tied to a specific date.
+3. Users can be assigned or left null to create **open shifts**.
+4. Modulo arithmetic determines which dates match the recurrence rules.
+5. Schedule changes do not modify historical assignments.
+
+---
+
+## 📦 ERD Diagriam
+https://drive.google.com/file/d/1ic34TTDxJnacwKJLYkPFuMms8YSFbfhP/view?usp=sharing
+
+
+# Complete Setup Guide - Mini Roste System
+
+
+## 📁 Project Structure
+
+Create the following directory structure:
+
+```
+roster-system/
+├── src/
+│   ├── entities/
+│   │   ├── base-time.entity.ts
+│   │   ├── user.entity.ts
+│   │   ├── shift.entity.ts
+│   │   ├── shift-schedule.entity.ts
+│   │   ├── assignment.entity.ts
+│   │   └── cannot-attend.entity.ts
+│   ├── enums/
+│   │   ├── role.enum.ts
+│   │   ├── recurrence-types.enum.ts
+│   │   └── assignment-status.enum.ts
+│   ├── services/
+│   │   ├── user.service.ts
+│   │   ├── shift.service.ts
+│   │   ├── shift-schedule.service.ts
+│   │   ├── assignment.service.ts
+│   │   └── cannot-attend.service.ts
+│   ├── resolvers/
+│   │   ├── user.resolver.ts
+│   │   ├── shift.resolver.ts
+│   │   ├── shift-schedule.resolver.ts
+│   │   ├── assignment.resolver.ts
+│   │   └── cannot-attend.resolver.ts
+│   ├── dto/
+│   │   ├── create-user.input.ts
+│   │   ├── create-shift.input.ts
+│   │   ├── create-shift-schedule.input.ts
+│   │   ├── assign-user.input.ts
+│   │   ├── mark-cannot-attend.input.ts
+│   │   └── get-shifts-filter.input.ts
+│   ├── seed/
+│   │   ├── seed.service.ts
+│   │   ├── seed.module.ts
+│   │   └── seed.ts
+│   ├── app.module.ts
+│   └── main.ts
+├── schema.drawio (Draw.io XML file)
+├── sample-queries.graphql
+├── package.json
+├── tsconfig.json
+├── .env.example
+├── .gitignore
+└── README.md
 ```
 
-## Compile and run the project
+## 🚀 Step-by-Step Setup
+
+### Step 1: Clone the Project
 
 ```bash
-# development
-$ npm run start
+# Create project directory
+git clone https://github.com/abjerry/mini-roster-system-backend.git
+cd mini-roster-system-backend
+```
+### Step 2: Install Dependencies
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```bash 
+npm install 
 ```
 
-## Run tests
+### Step 3: Environment Setup
+
+```bash 
+cp .example.env .env
+
+```
+
+
+### Step 4: Seed Database
+
+```bash 
+npm run seed
+```
+### Step 5: Run the Application
 
 ```bash
-# unit tests
-$ npm run test
+# Development mode with auto-reload
+npm run start:dev
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Or production mode
+npm run build
+npm run start:prod
 ```
 
-## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Step 6: Access GraphQL Playground
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+Open your browser and navigate to:
+```
+http://localhost:3000/graphql
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 🧪 Testing the System
 
-## Resources
+### Quick Test Workflow
 
-Check out a few resources that may come in handy when working with NestJS:
+1. **Open GraphQL Playground** at `http://localhost:3000/graphql`
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
 
-## Support
+3. **Get all users** to grab UUIDs:
+   ```graphql
+   query {
+     users {
+       id
+       name
+       email
+     }
+   }
+   ```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+4. **Get all shifts**:
+   ```graphql
+   query {
+     shifts {
+       id
+       name
+       startTime
+       endTime
+     }
+   }
+   ```
 
-## Stay in touch
+5. **Create a schedule**:
+   ```graphql
+   mutation {
+     createShiftSchedule(input: {
+       shiftId: "PASTE_SHIFT_ID_HERE"
+       startDate: "2024-01-01"
+       endDate: "2024-12-31"
+       recurrenceType: WEEKLY
+       daysOfWeek: [1, 2, 3, 4, 5]
+       interval: 1
+     }) {
+       id
+     }
+   }
+   ```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+6. **Generate assignments**:
+   ```graphql
+   mutation {
+     generateAssignments(
+       scheduleId: "PASTE_SCHEDULE_ID_HERE"
+       startDate: "2024-01-01"
+       endDate: "2024-01-31"
+     ) {
+       id
+       date
+       status
+     }
+   }
+   ```
 
-## License
+7. **View open shifts**:
+   ```graphql
+   query {
+     openShifts(
+       startDate: "2024-01-01"
+       endDate: "2024-01-31"
+     ) {
+       id
+       date
+       schedule {
+         shift {
+           name
+         }
+       }
+     }
+   }
+   ```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+8. **Assign a user**:
+   ```graphql
+   mutation {
+     assignUser(input: {
+       userId: "PASTE_USER_ID_HERE"
+       scheduleId: "PASTE_SCHEDULE_ID_HERE"
+       date: "2024-01-15"
+     }) {
+       id
+       status
+       user {
+         name
+       }
+     }
+   }
+   ```
+ 
+8. **Remove an Assignment**:
+   ```graphql
+   mutation  {
+  removeAssignment(assignmentId: "assignmentId")
+}
+   ```
+ 

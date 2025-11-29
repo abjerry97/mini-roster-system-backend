@@ -233,11 +233,10 @@ export class ShiftService {
         date: Between(new Date(startDate), new Date(endDate)),
       },
       relations: ['schedule', 'schedule.shift', 'user'],
-    });
-
+    }); 
     return assignments.map((assignment) => ({
-      id: `${assignment.scheduleId}-${assignment.date.toISOString().split('T')[0]}`,
-      date: assignment.date.toISOString().split('T')[0],
+      id: `${assignment?.scheduleId}-${assignment?.date}`,
+      date: `${assignment?.date}`,
       timeslot: this.getTimeslotFromTime(assignment.schedule.shift.startTime),
       startTime: assignment.schedule.shift.startTime,
       endTime: assignment.schedule.shift.endTime,

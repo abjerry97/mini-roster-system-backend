@@ -11,7 +11,7 @@ export class CreateCannotAttendInput {
   @Field()
   @IsUUID()
   @IsNotEmpty()
-  occurrenceId: string;
+  assignmentId: string;
 
   @Field()
   @IsNotEmpty()

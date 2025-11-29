@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { CannotAttend } from '../entities/cannot-attend.entity';
 import { User } from '../entities/user.entity';
 import { Assignment } from 'src/entities/assignment.entity';
+import { AssignmentStatus } from 'src/enums/assignment-status.enum';
 
 @Injectable()
 export class CannotAttendService {
@@ -16,7 +17,7 @@ export class CannotAttendService {
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Assignment)
     private assignmentRepo: Repository<Assignment>,
-  ) {}
+  ) { }
 
   async markCannotAttend(userId: string, assignmentId: string, reason: string) {
     const user = await this.userRepo.findOneBy({ id: userId });
@@ -42,6 +43,7 @@ export class CannotAttendService {
     });
 
     if (existing) {
+
       throw new BadRequestException('Cannot attend record already exists');
     }
 
@@ -51,6 +53,7 @@ export class CannotAttendService {
       reason,
     });
 
+    this.assignmentRepo.update({ id: assignmentId }, { status: AssignmentStatus.CANCELLED })
     return this.repo.save(cannotAttend);
   }
 

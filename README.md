@@ -233,7 +233,7 @@ http://localhost:3000/graphql
 8. **Remove an Assignment**:
    ```graphql
    mutation  {
-  removeAssignment(assignmentId: "assignmentId")
-}
+    removeAssignment(assignmentId: "assignmentId")
+  }
    ```
  

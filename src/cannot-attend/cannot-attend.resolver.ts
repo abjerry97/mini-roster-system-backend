@@ -9,11 +9,11 @@ export class CannotAttendResolver {
 
   @Mutation(() => CannotAttend)
   async createCannotAttend(@Args('input') input: CreateCannotAttendInput) {
-    const { userId, occurrenceId, reason } = input;
+    const { userId, assignmentId, reason } = input;
 
     return this.cannotAttendService.markCannotAttend(
       userId,
-      occurrenceId,
+      assignmentId,
       reason,
     );
   }

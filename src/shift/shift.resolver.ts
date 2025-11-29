@@ -55,6 +55,8 @@ export class ShiftResolver {
     @Args('scheduleId') scheduleId: string,
     @Args('date') date: string,
   ) {
+
+    console.log(userId,scheduleId,date)
     return this.assignmentService.assignUserToOccurrence(
       userId,
       scheduleId,

@@ -177,7 +177,12 @@ export class ShiftService {
 
           if (assignment.status === AssignmentStatus.CANCELLED) {
             status = 'unavailable';
-            unavailableReason = assignment?.cannotAttendRecords[0].reason || 'Shift cancelled';
+ 
+             const reasons =
+            ((await assignment.cannotAttendRecords)?.map((r) => r.reason)) ?? [];
+
+          unavailableReason =
+            reasons.length > 0 ? reasons.join('; ') : 'Shift cancelled';
           } else if (
             assignment.status === AssignmentStatus.ASSIGNED &&
             assignment.userId
@@ -190,7 +195,7 @@ export class ShiftService {
         }
 
         calendarShifts.push({
-          id: `${schedule.id}-${dateStr}`,
+          id: `${schedule.id}`,
           date: dateStr,
           timeslot,
           startTime: schedule.shift.startTime,
@@ -221,22 +226,32 @@ export class ShiftService {
     if (hour >= 18 && hour < 24) return 'evening';
     return 'night';
   }
+  
+async getUserCalendarShifts(
+  userId: string,
+  startDate: string,
+  endDate: string,
+): Promise<CalendarShift[]> {
+  const assignments = await this.assignmentRepo.find({
+    where: {
+      userId,
+      date: Between(new Date(startDate), new Date(endDate)),
+    },
+    relations: ['schedule', 'schedule.shift', 'cannotAttendRecords', 'user'],
+  });
 
-  async getUserCalendarShifts(
-    userId: string,
-    startDate: string,
-    endDate: string,
-  ): Promise<CalendarShift[]> {
-    const assignments = await this.assignmentRepo.find({
-      where: {
-        userId,
-        date: Between(new Date(startDate), new Date(endDate)),
-      },
-      relations: ['schedule', 'schedule.shift', 'user'],
-    }); 
-    return assignments.map((assignment) => ({
-      id: `${assignment?.scheduleId}-${assignment?.date}`,
-      date: `${assignment?.date}`,
+  return Promise.all(assignments.map(async (assignment) => {
+    const reasons =
+      assignment.status === AssignmentStatus.CANCELLED
+        ? (await assignment.cannotAttendRecords)?.map((r) => r.reason) || []
+        : null;
+
+    const unavailableReason =
+      reasons && reasons.length ? reasons.join('; ') : undefined;
+
+    return {
+      id: `${assignment.scheduleId}`,
+      date: `${assignment.date}`,
       timeslot: this.getTimeslotFromTime(assignment.schedule.shift.startTime),
       startTime: assignment.schedule.shift.startTime,
       endTime: assignment.schedule.shift.endTime,
@@ -248,15 +263,14 @@ export class ShiftService {
             : 'open',
       position: assignment.schedule.shift.name,
       assignedUserId: assignment.userId,
-      unavailableReason:
-        assignment.status === AssignmentStatus.CANCELLED
-          ? assignment.notes
-          : undefined,
+      unavailableReason,
       assignmentId: assignment.id,
       scheduleId: assignment.scheduleId,
       shiftId: assignment.schedule.shift.id,
-    }));
-  }
+    };
+  }));
+}
+
 
   async getCannotAttendInRange(startDate: string, endDate: string) {
     const assignments = await this.assignmentRepo.find({

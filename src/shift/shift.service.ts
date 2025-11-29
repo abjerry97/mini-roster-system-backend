@@ -143,7 +143,7 @@ export class ShiftService {
   ): Promise<CalendarShift[]> {
     const schedules = await this.scheduleRepo.find({
       where: { isActive: true },
-      relations: ['shift', 'assignments', 'assignments.user'],
+      relations: ['shift', 'assignments','assignments.cannotAttendRecords', 'assignments.user'],
     });
 
     const calendarShifts: CalendarShift[] = [];
@@ -177,7 +177,7 @@ export class ShiftService {
 
           if (assignment.status === AssignmentStatus.CANCELLED) {
             status = 'unavailable';
-            unavailableReason = assignment.notes || 'Shift cancelled';
+            unavailableReason = assignment?.cannotAttendRecords[0].reason || 'Shift cancelled';
           } else if (
             assignment.status === AssignmentStatus.ASSIGNED &&
             assignment.userId
